@@ -21,7 +21,7 @@ def query_aws_api(instance_id, region)
   cache_content = '/var/tmp/ec2tagfacts.cache_content'
   tags          = {}
 
-  query_cmd = "awss ec2 describe-tags --filters \"Name=resource-id,Values=#{instance_id}\" --region #{region} --output json"
+  query_cmd = "aws ec2 describe-tags --filters \"Name=resource-id,Values=#{instance_id}\" --region #{region} --output json"
 
   if File.exist?(cache_enabled)
     if File.exist?(cache_content)
