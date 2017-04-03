@@ -1,26 +1,27 @@
 require "json"
-#require "logger"
 
-#
-#
-#
+# Return a normalized name for the fact.
+# Replace any non-word character with "_"
 def normalize_tag_name(name)
   normalized_name = name.downcase.gsub(/\W+/, "_")
   "ec2_tag_#{normalized_name}"
 end
 
-# The cache is enabled though Puppet using Hiera:
+# The cache is enabled through Puppet using Hiera:
 # ```
 # ec2tagfacts::cache_aws_api_calls: true
 # ```
-# The class will create the `cache_enabled` file that is being used here
-# to identify if the cache is enabled or not
+#
+# The `ec2tagfacts` class will create the `cache_enabled` file that
+# is being used here to identify if the API calls should be cached.
 def query_aws_api(instance_id, region)
+  # If you change the destination of this file you should do the same
+  # in the Puppet class.
   cache_enabled = '/var/tmp/ec2tagfacts.cache_enabled'
   cache_content = '/var/tmp/ec2tagfacts.cache_content'
   tags          = {}
 
-  query_cmd = "aws ec2 describe-tags --filters \"Name=resource-id,Values=#{instance_id}\" --region #{region} --output json"
+  query_cmd = "awss ec2 describe-tags --filters \"Name=resource-id,Values=#{instance_id}\" --region #{region} --output json"
 
   if File.exist?(cache_enabled)
     if File.exist?(cache_content)
@@ -33,7 +34,6 @@ def query_aws_api(instance_id, region)
     tags = Facter::Core::Execution.execute(query_cmd)
   end
 
-  # Facter::Util::Parser::JsonParse
   JSON.parse(tags)
 end
 
@@ -49,9 +49,7 @@ tags['Tags'].each do |tag|
   value = tag['Value']
 
   Facter.add(name) do
-    setcode do
-      value
-    end
+    setcode { value }
   end
 end
 
