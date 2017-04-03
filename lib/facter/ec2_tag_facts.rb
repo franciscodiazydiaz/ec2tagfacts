@@ -1,9 +1,9 @@
 require "json"
 #require "logger"
 
-ec2_metadata      = Facter::EC2::Metadata.new
+ec2_metadata      = Facter.value(:ec2_metadata)
 instance_id       = ec2_metadata.fetch('instance-id')
-availability_zone = ec2_metadata.fetch('placement/availability-zone')
+availability_zone = ec2_metadata.fetch('placement').fetch('availability-zone')
 region            = availability_zone[0..-2]
 
 tags = query_aws_api(instance_id, region)
