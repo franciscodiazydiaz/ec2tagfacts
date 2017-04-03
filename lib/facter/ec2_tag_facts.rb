@@ -30,6 +30,37 @@ def debug_msg(txt)
   end
 end
 
+def query_aws_api(instance_id, region)
+  # The cache is enabled though Puppet using Hiera:
+  # ```
+  # ec2tagfacts::cache_aws_api_calls: true
+  # ```
+  # The class will create the `cache_enabled` file that is being used here
+  # to identify if the cache is enabled or not
+  cache_enabled = '/var/tmp/ec2tagfacts.cache_enabled'
+  cache_content = '/var/tmp/ec2tagfacts.cache_content'
+  jsonString    = ''
+
+  # This is why aws cli is required
+  query_cmd = "aws ec2 describe-tags --filters \"Name=resource-id,Values=#{instance_id}\" --region #{region} --output json"
+
+  if File.exist?(cache_enabled)
+    debug_msg('AWS API calls are cached')
+    if File.exist?(cache_content)
+      debug_msg("Reading AWS API calls from cache file: #{cache_content}")
+      jsonString = File.read(cache_content)
+    else
+      debug_msg("Generating AWS API calls cache file: #{cache_content}")
+      jsonString = `"#{query_cmd}"`
+      File.open(cache_content, 'w') { |f| f.write(jsonString) }
+    end
+  else
+    debug_msg('AWS API calls are NOT cached')
+    jsonString = `"#{query_cmd}"`
+  end
+
+  jsonString
+end
 ####################################################
 #
 # Start
@@ -90,8 +121,7 @@ else
 
   begin
 
-    # This is why aws cli is required
-    jsonString = `aws ec2 describe-tags --filters "Name=resource-id,Values=#{instance_id}" --region #{region} --output json`
+    jsonString = query_aws_api(instance_id, region)
 
     debug_msg("JSON is...\n#{jsonString}")
 

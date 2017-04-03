@@ -14,11 +14,11 @@
 #   Full path to the aws cli ini file to store credentials. Default is provided.
 #
 # [*enable_epel*]
-#   True to enable EPEL automatically, false not to. Automatically set in 
+#   True to enable EPEL automatically, false not to. Automatically set in
 #   ec2tagfacts::params based on OS family.
 #
 # [*pippkg*]
-#   Set in ec2tagfacts::params, this is the Python pip package name by OS 
+#   Set in ec2tagfacts::params, this is the Python pip package name by OS
 #   family. False disables python pip package management.
 #
 # [*awscli*]
@@ -26,6 +26,9 @@
 #
 # [*rubyjsonpkg*]
 #   Set in ec2tagfacts::params, this is the ruby-json package name.
+#
+# [*cache_aws_api_calls*]
+#   If AWS API calls should be cached
 #
 # === Examples
 #
@@ -68,6 +71,7 @@ class ec2tagfacts (
   $awscli                 = $ec2tagfacts::params::awscli,
   $rubyjsonpkg            = $ec2tagfacts::params::rubyjsonpkg,
   $awscli_pkg             = $ec2tagfacts::params::awscli_pkg,
+  $cache_aws_api_calls    = $ec2tagfacts::params::cache_aws_api_calls,
 
 ) inherits ec2tagfacts::params {
 
@@ -141,6 +145,17 @@ class ec2tagfacts (
       require => File[$directory],
     }
 
+  }
+
+  if $cache_aws_api_calls {
+    $_cache_file_ensure = 'present'
+  } else {
+    $_cache_file_ensure = 'absent'
+  }
+
+  file { '/var/tmp/ec2tagfacts.cache':
+    ensure  => $_cache_file_ensure,
+    content => '',
   }
 
 }
