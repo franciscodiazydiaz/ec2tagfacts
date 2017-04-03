@@ -24,7 +24,7 @@ def query_aws_api(instance_id, region)
 
   if File.exist?(cache_enabled)
     if File.exist?(cache_content)
-      tags = Facter::Util::FileRead.read(cache_content)
+      tags = File.read(cache_content)
     else
       tags = Facter::Core::Execution.execute(query_cmd)
       File.open(cache_content, 'w') { |f| f.write(tags) }
