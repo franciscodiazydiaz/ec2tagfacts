@@ -1,24 +1,6 @@
 require "json"
 #require "logger"
 
-ec2_metadata      = Facter.value(:ec2_metadata)
-instance_id       = ec2_metadata.fetch('instance-id')
-availability_zone = ec2_metadata.fetch('placement').fetch('availability-zone')
-region            = availability_zone[0..-2]
-
-tags = query_aws_api(instance_id, region)
-
-tags['Tags'].each do |tag|
-  name  = normalize_tag_name(tag['Key'])
-  value = tag['Value']
-
-  Facter.add(name) do
-    setcode do
-      value
-    end
-  end
-end
-
 #
 #
 #
@@ -54,3 +36,22 @@ def query_aws_api(instance_id, region)
   # Facter::Util::Parser::JsonParse
   JSON.parse(tags)
 end
+
+ec2_metadata      = Facter.value(:ec2_metadata)
+instance_id       = ec2_metadata.fetch('instance-id')
+availability_zone = ec2_metadata.fetch('placement').fetch('availability-zone')
+region            = availability_zone[0..-2]
+
+tags = query_aws_api(instance_id, region)
+
+tags['Tags'].each do |tag|
+  name  = normalize_tag_name(tag['Key'])
+  value = tag['Value']
+
+  Facter.add(name) do
+    setcode do
+      value
+    end
+  end
+end
+
