@@ -37,6 +37,7 @@
 class ec2tagfacts::params {
 
   $aws_cli_ini_settings = '/root/.aws/credentials'
+  $cache_aws_api_calls  = false
 
   case $::operatingsystem {
     'CentOS', 'RedHat' , 'OEL', 'OracleLinux': {
