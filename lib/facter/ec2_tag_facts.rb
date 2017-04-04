@@ -2,6 +2,7 @@ require "json"
 require "logger"
 
 @logger = Logger.new(STDOUT)
+@logger.progname = 'ec2_tag_facts'
 
 # Return a normalized name for the fact.
 # Replace any non-word character with "_"
@@ -18,18 +19,18 @@ def exec_aws_api_call(instance_id, region)
   query_cmd = "aws ec2 describe-tags --filters \"Name=resource-id,Values=#{instance_id}\" --region #{region} --output json"
 
   begin
-    @logger.info("ec2_tag_facts: query AWS API ##{retries}")
+    @logger.info("query AWS API ##{retries}")
     tags = Facter::Core::Execution.execute(query_cmd, :timeout => 10)
-    @logger.info("ec2_tag_facts: query result for ##{retries}: #{tags}")
+    @logger.info("query result for ##{retries}: #{tags}")
 
     # Workaround to raise an error if the command output is empty
-    # This may happend if the credentials are wrong:
+    # This may happen if the credentials are wrong:
     # "...An error occurred (AuthFailure) when calling the..." (exit code: 255)
     if tags.empty?
       raise Facter::Core::Execution::ExecutionFailure, "Empty result from command aws"
     end
   rescue Facter::Core::Execution::ExecutionFailure => e
-    @logger.error("ec2_tag_facts: error querying AWS API: #{e.message}")
+    @logger.error("error querying AWS API: #{e.message}")
     retry if (retries += 1) <= 3
     raise e
   end
@@ -54,9 +55,9 @@ def query_aws_api(instance_id, region)
   tags          = {}
 
   if File.exist?(cache_enabled)
-    @logger.info('ec2_tag_facts: cache is enabled')
+    @logger.info('cache is enabled')
     if File.exist?(cache_content)
-      @logger.info('ec2_tag_facts: reading cache from file')
+      @logger.info('reading cache from file')
       tags = File.read(cache_content)
     else
       tags = exec_aws_api_call(instance_id, region)
