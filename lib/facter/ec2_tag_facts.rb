@@ -1,8 +1,8 @@
 require "json"
-require "logger"
+require "syslog/logger"
 
-@logger = Logger.new(STDOUT)
-@logger.progname = 'ec2_tag_facts'
+@logger = Syslog::Logger.new 'ec2_tag_facts'
+#@logger.progname = 'ec2_tag_facts'
 
 # Return a normalized name for the fact.
 # Replace any non-word character with "_"
