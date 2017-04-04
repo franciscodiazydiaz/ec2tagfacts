@@ -1,7 +1,7 @@
 require "json"
 require "logger"
 
-logger = Logger.new
+logger = Logger.new(STDOUT)
 
 # Return a normalized name for the fact.
 # Replace any non-word character with "_"
