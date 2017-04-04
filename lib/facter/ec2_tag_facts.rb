@@ -13,13 +13,14 @@ end
 # Executes AWS API call and allow us to catch any errors
 # and retry if necessary
 def exec_aws_api_call(instance_id, region)
-  retries   = 3
+  retries   = 0
   tags      = nil
   query_cmd = "aws ec2 describe-tags --filters \"Name=resource-id,Values=#{instance_id}\" --region #{region} --output json"
 
   begin
     @logger.info("ec2_tag_facts: query AWS API ##{retries}")
     tags = Facter::Core::Execution.execute(query_cmd, :timeout => 10)
+    @logger.info("ec2_tag_facts: query result for ##{retries}: #{tags}")
 
     # Workaround to raise an error if the command output is empty
     # This may happend if the credentials are wrong:
@@ -29,7 +30,7 @@ def exec_aws_api_call(instance_id, region)
     end
   rescue Facter::Core::Execution::ExecutionFailure => e
     @logger.error("ec2_tag_facts: error querying AWS API: #{e.message}")
-    retry if (retries -= 1) >= 0
+    retry if (retries += 1) <= 3
     raise e
   end
 end
