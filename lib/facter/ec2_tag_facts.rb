@@ -1,7 +1,7 @@
 require "json"
 require "logger"
 
-logger = Logger.new(STDOUT)
+@logger = Logger.new(STDOUT)
 
 # Return a normalized name for the fact.
 # Replace any non-word character with "_"
@@ -17,10 +17,10 @@ def exec_aws_api_call(instance_id, region)
   query_cmd = "aws ec2 describe-tags --filters \"Name=resource-id,Values=#{instance_id}\" --region #{region} --output json"
 
   begin
-    logger.info("ec2_tag_facts: query AWS API ##{retries}")
+    @logger.info("ec2_tag_facts: query AWS API ##{retries}")
     Facter::Core::Execution.execute(query_cmd, :timeout => 10)
   rescue Facter::Core::Execution::ExecutionFailure => e
-    logger.error("ec2_tag_facts: error querying AWS API: #{e.message}")
+    @logger.error("ec2_tag_facts: error querying AWS API: #{e.message}")
     retry if (retries -= 1) >= 0
     raise e
   end
@@ -45,9 +45,9 @@ def query_aws_api(instance_id, region)
   tags          = {}
 
   if File.exist?(cache_enabled)
-    logger.info('ec2_tag_facts: cache is enabled')
+    @logger.info('ec2_tag_facts: cache is enabled')
     if File.exist?(cache_content)
-      logger.info('ec2_tag_facts: reading cache from file')
+      @logger.info('ec2_tag_facts: reading cache from file')
       tags = File.read(cache_content)
     else
       tags = exec_aws_api_call(instance_id, region)
