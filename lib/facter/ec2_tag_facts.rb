@@ -33,7 +33,10 @@ def exec_aws_api_call(instance_id, region)
     end
   rescue Facter::Core::Execution::ExecutionFailure => e
     @logger.error("error querying AWS API: #{e.message}")
-    retry if (retries += 1) <= 3
+    if (retries += 1) <= 3
+      sleep 5
+      retry
+    end
     raise e
   end
 
