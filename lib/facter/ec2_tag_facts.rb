@@ -1,8 +1,10 @@
 require "json"
 require "syslog/logger"
 
-@logger = Syslog::Logger.new 'ec2_tag_facts'
-#@logger.progname = 'ec2_tag_facts'
+@logger          = Syslog::Logger.new(STDOUT)
+# The debug and info messages are silently discarded
+@logger.level    = Logger::WARN
+@logger.progname = 'ec2_tag_facts'
 
 # Return a normalized name for the fact.
 # Replace any non-word character with "_"
