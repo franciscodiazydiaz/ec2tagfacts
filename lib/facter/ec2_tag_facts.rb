@@ -7,6 +7,20 @@ def normalize_tag_name(name)
   "ec2_tag_#{normalized_name}"
 end
 
+# Executes AWS API call and allow us to catch any errors
+# and retry if necessary
+def exec_aws_api_call(instance_id, region)
+  retries   = 3
+  query_cmd = "aws ec2 describe-tags --filters \"Name=resource-id,Values=#{instance_id}\" --region #{region} --output json"
+
+  begin
+    Facter::Core::Execution.execute(query_cmd, :timeout => 10)
+  rescue Facter::Core::Execution::ExecutionFailure => e
+    retry if (retries -= 1) >= 0
+    raise e
+  end
+end
+
 # The cache is enabled through Puppet using Hiera:
 # ```
 # ec2tagfacts::cache_aws_api_calls: true
@@ -14,6 +28,10 @@ end
 #
 # The `ec2tagfacts` class will create the `cache_enabled` file that
 # is being used here to identify if the API calls should be cached.
+#
+# With this logic we need at least 2 calls to the AWS API:
+# 1. When Puppet runs for the first time will create the `cache_enabled` file
+# 2. This fact now knows that the calls should be cached
 def query_aws_api(instance_id, region)
   # If you change the destination of this file you should do the same
   # in the Puppet class.
@@ -21,17 +39,15 @@ def query_aws_api(instance_id, region)
   cache_content = '/var/tmp/ec2tagfacts.cache_content'
   tags          = {}
 
-  query_cmd = "aws ec2 describe-tags --filters \"Name=resource-id,Values=#{instance_id}\" --region #{region} --output json"
-
   if File.exist?(cache_enabled)
     if File.exist?(cache_content)
       tags = File.read(cache_content)
     else
-      tags = Facter::Core::Execution.execute(query_cmd)
+      tags = exec_aws_api_call(instance_id, region)
       File.open(cache_content, 'w') { |f| f.write(tags) }
     end
   else
-    tags = Facter::Core::Execution.execute(query_cmd)
+    tags = exec_aws_api_call(instance_id, region)
   end
 
   JSON.parse(tags)
