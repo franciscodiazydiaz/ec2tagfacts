@@ -153,7 +153,7 @@ class ec2tagfacts (
     $_cache_file_ensure = 'absent'
   }
 
-  file { '/var/tmp/ec2tagfacts.cache':
+  file { '/var/tmp/ec2tagfacts.cache_enabled':
     ensure  => $_cache_file_ensure,
     content => '',
   }
