@@ -34,6 +34,8 @@ def exec_aws_api_call(instance_id, region)
     retry if (retries += 1) <= 3
     raise e
   end
+
+  tags
 end
 
 # The cache is enabled through Puppet using Hiera:
